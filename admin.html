@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Админ панель - INK Studio</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/admin.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap">
+</head>
+<body>
+  <header class="header">
+    <div class="container header-container">
+      <div class="logo">
+        <a href="index.html">INK Studio</a>
+      </div>
+      <nav class="main-nav">
+        <button class="mobile-menu-toggle">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <ul class="nav-list">
+          <li><a href="index.html">На сайт</a></li>
+          <li><a href="blog.html">Блог</a></li>
+          <li><a href="#" class="logout-btn">Выйти</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-header">
+      <div class="container">
+        <h1>Админ панель</h1>
+      </div>
+    </section>
+
+    <section class="admin-content">
+      <div class="container">
+        <div class="admin-tabs">
+          <button class="tab-btn active" data-tab="bookings">Бронирования</button>
+          <button class="tab-btn" data-tab="gallery">Галерея</button>
+          <button class="tab-btn" data-tab="blog">Блог</button>
+        </div>
+
+        <div class="tab-content">
+          <!-- Bookings Tab -->
+          <div class="tab-pane active" id="bookings-tab">
+            <div class="bookings-filters">
+              <input type="date" id="date-filter" class="filter-input">
+              <select id="status-filter" class="filter-input">
+                <option value="all">Все статусы</option>
+                <option value="pending">Ожидает</option>
+                <option value="confirmed">Подтверждено</option>
+                <option value="completed">Завершено</option>
+                <option value="cancelled">Отменено</option>
+              </select>
+              <button class="btn btn-primary" id="apply-filters">Применить</button>
+            </div>
+
+            <div class="bookings-list">
+              <!-- Bookings will be loaded here -->
+            </div>
+          </div>
+
+          <!-- Gallery Tab -->
+          <div class="tab-pane" id="gallery-tab">
+            <div class="gallery-controls">
+              <button class="btn btn-primary" id="add-work-btn">Добавить работу</button>
+            </div>
+
+            <div class="gallery-grid admin-gallery">
+              <!-- Gallery items will be loaded here -->
+            </div>
+
+            <!-- Add Work Modal -->
+            <div class="modal" id="add-work-modal">
+              <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2>Добавить новую работу</h2>
+                <form id="add-work-form">
+                  <div class="form-group">
+                    <label for="work-title">Название работы</label>
+                    <input type="text" id="work-title" required>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="work-description">Описание</label>
+                    <textarea id="work-description" required></textarea>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="work-style">Стиль</label>
+                    <select id="work-style" required>
+                      <option value="traditional">Традиционный</option>
+                      <option value="realism">Реализм</option>
+                      <option value="blackwork">Блэкворк</option>
+                      <option value="neotraditional">Неотрадишнл</option>
+                      <option value="graphic">Графика</option>
+                    </select>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="work-artist">Мастер</label>
+                    <select id="work-artist" required>
+                      <!-- Artists will be loaded here -->
+                    </select>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="work-image">URL изображения</label>
+                    <input type="url" id="work-image" required>
+                  </div>
+                  
+                  <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Добавить</button>
+                    <button type="button" class="btn btn-secondary" id="cancel-add-work">Отмена</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <!-- Blog Tab -->
+          <div class="tab-pane" id="blog-tab">
+            <div class="blog-controls">
+              <button class="btn btn-primary" id="add-post-btn">Добавить пост</button>
+            </div>
+
+            <div class="blog-posts-list">
+              <!-- Blog posts will be loaded here -->
+            </div>
+
+            <!-- Add Post Modal -->
+            <div class="modal" id="add-post-modal">
+              <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2>Добавить новый пост</h2>
+                <form id="add-post-form">
+                  <div class="form-group">
+                    <label for="post-title">Заголовок</label>
+                    <input type="text" id="post-title" required>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="post-excerpt">Краткое описание</label>
+                    <textarea id="post-excerpt" required></textarea>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="post-content">Содержание</label>
+                    <textarea id="post-content" rows="10" required></textarea>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="post-category">Категория</label>
+                    <select id="post-category" required>
+                      <option value="care">Уход за татуировками</option>
+                      <option value="styles">Стили татуировок</option>
+                      <option value="tips">Советы и рекомендации</option>
+                      <option value="news">Новости студии</option>
+                    </select>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="post-image">URL изображения</label>
+                    <input type="url" id="post-image" required>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="post-read-time">Время чтения (в минутах)</label>
+                    <input type="number" id="post-read-time" min="1" required>
+                  </div>
+                  
+                  <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Опубликовать</button>
+                    <button type="button" class="btn btn-secondary" id="cancel-add-post">Отмена</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/main.js" type="module"></script>
+  <script src="js/admin.js" type="module"></script>
+</body>
+</html>

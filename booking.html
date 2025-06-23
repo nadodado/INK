@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Запись на сеанс - INK Studio</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/booking.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap">
+</head>
+<body>
+  <header class="header">
+    <div class="container header-container">
+      <div class="logo">
+        <a href="index.html">INK Studio</a>
+      </div>
+      <nav class="main-nav">
+        <button class="mobile-menu-toggle">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <ul class="nav-list">
+          <li><a href="index.html">Главная</a></li>
+          <li><a href="gallery.html">Галерея</a></li>
+          <li><a href="artists.html">Мастера</a></li>
+          <li><a href="blog.html">Блог</a></li>
+          <li><a href="booking.html" class="active">Запись</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-header">
+      <div class="container">
+        <h1>Запись на сеанс</h1>
+        <p>Выберите удобную дату и время для вашей татуировки</p>
+      </div>
+    </section>
+
+    <section class="booking-info">
+      <div class="container">
+        <div class="info-cards">
+          <div class="info-card">
+            <div class="info-icon">1</div>
+            <h3>Выберите дату</h3>
+            <p>Найдите удобное время в нашем календаре для вашего сеанса</p>
+          </div>
+          <div class="info-card">
+            <div class="info-icon">2</div>
+            <h3>Заполните форму</h3>
+            <p>Оставьте контактную информацию и опишите ваши пожелания</p>
+          </div>
+          <div class="info-card">
+            <div class="info-icon">3</div>
+            <h3>Подтверждение</h3>
+            <p>Дождитесь звонка или сообщения для подтверждения записи</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="booking-form">
+      <div class="container">
+        <div class="booking-container">
+          <div id="booking-step-1" class="booking-step active">
+            <h2>Выберите дату</h2>
+            <div class="calendar-container">
+              <div class="calendar-header">
+                <button id="prev-month">&lt;</button>
+                <h3 id="current-month-year"></h3>
+                <button id="next-month">&gt;</button>
+              </div>
+              <div class="weekdays">
+                <div>Пн</div>
+                <div>Вт</div>
+                <div>Ср</div>
+                <div>Чт</div>
+                <div>Пт</div>
+                <div>Сб</div>
+                <div>Вс</div>
+              </div>
+              <div id="calendar-days" class="days">
+                <!-- Days will be filled by JavaScript -->
+              </div>
+            </div>
+            <div class="time-slots" id="time-slots">
+              <h3>Выберите время</h3>
+              <p class="select-date-message">Сначала выберите дату</p>
+              <div class="slots-container">
+                <!-- Time slots will be filled by JavaScript -->
+              </div>
+            </div>
+            <div class="booking-step-buttons">
+              <button class="btn btn-primary" id="continue-to-step-2" disabled>Продолжить</button>
+            </div>
+          </div>
+
+          <div id="booking-step-2" class="booking-step">
+            <h2>Контактная информация</h2>
+            <form id="contact-form">
+              <div class="form-group">
+                <label for="name">Ваше имя*</label>
+                <input type="text" id="name" name="name" required>
+              </div>
+              
+              <div class="form-group">
+                <label for="phone">Номер телефона*</label>
+                <input type="tel" id="phone" name="phone" placeholder="+7 (___) ___-__-__" required>
+              </div>
+              
+              <div class="form-group">
+                <label>Предпочтительный способ связи*</label>
+                <div class="radio-group">
+                  <label class="radio-label">
+                    <input type="radio" name="contact-method" value="phone" checked>
+                    Телефон
+                  </label>
+                  <label class="radio-label">
+                    <input type="radio" name="contact-method" value="telegram">
+                    Телеграм
+                  </label>
+                  <label class="radio-label">
+                    <input type="radio" name="contact-method" value="vk">
+                    ВКонтакте
+                  </label>
+                </div>
+              </div>
+              
+              <div class="form-group" id="telegram-field" style="display: none;">
+                <label for="telegram">Ваш Телеграм*</label>
+                <input type="text" id="telegram" name="telegram" placeholder="@username">
+              </div>
+              
+              <div class="form-group" id="vk-field" style="display: none;">
+                <label for="vk">Ваш ВКонтакте*</label>
+                <input type="text" id="vk" name="vk" placeholder="vk.com/username">
+              </div>
+              
+              <div class="form-group">
+                <label for="artist">Выберите мастера (необязательно)</label>
+                <select id="artist" name="artist">
+                  <option value="">Без предпочтений</option>
+                  <!-- Artists will be filled by JavaScript -->
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label for="description">Описание желаемой татуировки*</label>
+                <textarea id="description" name="description" rows="4" placeholder="Опишите ваши пожелания, стиль, размер и место нанесения татуировки" required></textarea>
+              </div>
+              
+              <div class="form-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" name="agree" required>
+                  Я согласен на обработку персональных данных
+                </label>
+              </div>
+              
+              <div class="booking-step-buttons">
+                <button type="button" class="btn btn-secondary" id="back-to-step-1">Назад</button>
+                <button type="submit" class="btn btn-primary">Отправить заявку</button>
+              </div>
+            </form>
+          </div>
+
+          <div id="booking-step-3" class="booking-step">
+            <div class="success-message">
+              <div class="success-icon">✓</div>
+              <h2>Заявка отправлена!</h2>
+              <p>Спасибо за вашу заявку. Мы свяжемся с вами в ближайшее время для подтверждения записи.</p>
+              <div class="booking-details">
+                <p><strong>Дата:</strong> <span id="confirmation-date"></span></p>
+                <p><strong>Время:</strong> <span id="confirmation-time"></span></p>
+                <p><strong>Имя:</strong> <span id="confirmation-name"></span></p>
+              </div>
+              <div class="booking-step-buttons">
+                <a href="index.html" class="btn btn-primary">Вернуться на главную</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-logo">
+          <h3>INK Studio</h3>
+          <p>Искусство, воплощенное в татуировках</p>
+        </div>
+        <div class="footer-nav">
+          <h4>Навигация</h4>
+          <ul>
+            <li><a href="index.html">Главная</a></li>
+            <li><a href="gallery.html">Галерея</a></li>
+            <li><a href="artists.html">Мастера</a></li>
+            <li><a href="blog.html">Блог</a></li>
+            <li><a href="booking.html">Запись</a></li>
+          </ul>
+        </div>
+        <div class="footer-contact">
+          <h4>Контакты</h4>
+          <p>Адрес: г. Москва, ул. Творческая, 42</p>
+          <p>Телефон: +7 (999) 123-45-67</p>
+          <p>Email: info@inkstudio.ru</p>
+        </div>
+        <div class="footer-social">
+          <h4>Мы в соцсетях</h4>
+          <div class="social-links">
+            <a href="#" class="social-link">ВК</a>
+            <a href="#" class="social-link">Телеграм</a>
+            <a href="#" class="social-link">Инстаграм</a>
+          </div>
+        </div>
+      </div>
+      <div class="copyright">
+        <p>&copy; 2025 INK Studio. Все права защищены.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js" type="module"></script>
+  <script src="js/booking.js" type="module"></script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Галерея - INK Studio</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/gallery.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap">
+</head>
+<body>
+  <header class="header">
+    <div class="container header-container">
+      <div class="logo">
+        <a href="index.html">INK Studio</a>
+      </div>
+      <nav class="main-nav">
+        <button class="mobile-menu-toggle">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <ul class="nav-list">
+          <li><a href="index.html">Главная</a></li>
+          <li><a href="gallery.html" class="active">Галерея</a></li>
+          <li><a href="artists.html">Мастера</a></li>
+          <li><a href="blog.html">Блог</a></li>
+          <li><a href="booking.html">Запись</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-header">
+      <div class="container">
+        <h1>Галерея работ</h1>
+        <p>Лучшие работы наших мастеров</p>
+      </div>
+    </section>
+
+    <section class="gallery-filter">
+      <div class="container">
+        <div class="filter-buttons">
+          <button class="filter-btn active" data-filter="all">Все стили</button>
+          <button class="filter-btn" data-filter="traditional">Традиционные</button>
+          <button class="filter-btn" data-filter="realism">Реализм</button>
+          <button class="filter-btn" data-filter="blackwork">Блэкворк</button>
+          <button class="filter-btn" data-filter="neotraditional">Неотрадишнл</button>
+          <button class="filter-btn" data-filter="graphic">Графика</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="gallery">
+      <div class="container">
+        <div class="gallery-grid" id="gallery-container">
+          <!-- Gallery items will be loaded dynamically via JavaScript -->
+        </div>
+      </div>
+    </section>
+
+    <div class="lightbox" id="lightbox">
+      <div class="lightbox-content">
+        <span class="close-lightbox">&times;</span>
+        <div class="lightbox-image-container">
+          <img src="" alt="" id="lightbox-image">
+        </div>
+        <div class="lightbox-info">
+          <div class="tattoo-details">
+            <h3 id="lightbox-title"></h3>
+            <p id="lightbox-description"></p>
+          </div>
+          <div class="artist-info">
+            <div class="artist-avatar">
+              <img src="" alt="" id="lightbox-artist-avatar">
+            </div>
+            <div class="artist-details">
+              <h4 id="lightbox-artist-name"></h4>
+              <a href="" id="lightbox-artist-link">Профиль мастера</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-logo">
+          <h3>INK Studio</h3>
+          <p>Искусство, воплощенное в татуировках</p>
+        </div>
+        <div class="footer-nav">
+          <h4>Навигация</h4>
+          <ul>
+            <li><a href="index.html">Главная</a></li>
+            <li><a href="gallery.html">Галерея</a></li>
+            <li><a href="artists.html">Мастера</a></li>
+            <li><a href="blog.html">Блог</a></li>
+            <li><a href="booking.html">Запись</a></li>
+          </ul>
+        </div>
+        <div class="footer-contact">
+          <h4>Контакты</h4>
+          <p>Адрес: г. Москва, ул. Творческая, 42</p>
+          <p>Телефон: +7 (999) 123-45-67</p>
+          <p>Email: info@inkstudio.ru</p>
+        </div>
+        <div class="footer-social">
+          <h4>Мы в соцсетях</h4>
+          <div class="social-links">
+            <a href="#" class="social-link">ВК</a>
+            <a href="#" class="social-link">Телеграм</a>
+            <a href="#" class="social-link">Инстаграм</a>
+          </div>
+        </div>
+      </div>
+      <div class="copyright">
+        <p>&copy; 2025 INK Studio. Все права защищены.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script src="js/gallery.js"></script>
+</body>
+</html>
