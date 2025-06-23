@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Artists select
   const artistSelect = document.getElementById('artist');
 
-  // Current date
+  // Calendar state
   let currentDate = new Date();
   let selectedDate = null;
   let selectedTimeSlot = null;
@@ -37,138 +37,433 @@ document.addEventListener('DOMContentLoaded', function() {
     'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
   ];
 
-  // Calendar generation
-  function generateCalendar(year, month) {
-    calendarDays.innerHTML = '';
-    
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const today = new Date();
-    
-    currentMonthYear.textContent = `${monthNames[month]} ${year}`;
-    
-    let firstDayOfWeek = firstDay.getDay();
-    firstDayOfWeek = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
-    
-    // Add empty cells for days before the first day of the month
-    for (let i = 0; i < firstDayOfWeek; i++) {
-      const emptyDay = document.createElement('div');
-      calendarDays.appendChild(emptyDay);
+  // Calendar class for better organization
+  class Calendar {
+    constructor(container, monthYearDisplay) {
+      this.container = container;
+      this.monthYearDisplay = monthYearDisplay;
+      this.currentDate = new Date();
+      this.selectedDate = null;
+      this.onDateSelect = null;
     }
-    
-    // Add days of the month
-    for (let day = 1; day <= daysInMonth; day++) {
-      const dayCell = document.createElement('div');
-      dayCell.textContent = day;
+
+    // Get first day of month (0 = Sunday, 1 = Monday, etc.)
+    getFirstDayOfMonth(year, month) {
+      const firstDay = new Date(year, month, 1).getDay();
+      // Convert Sunday (0) to be last day (6), Monday (1) to be first (0)
+      return firstDay === 0 ? 6 : firstDay - 1;
+    }
+
+    // Get number of days in month
+    getDaysInMonth(year, month) {
+      return new Date(year, month + 1, 0).getDate();
+    }
+
+    // Check if date is today
+    isToday(year, month, day) {
+      const today = new Date();
+      return year === today.getFullYear() && 
+             month === today.getMonth() && 
+             day === today.getDate();
+    }
+
+    // Check if date is in the past
+    isPastDate(year, month, day) {
+      const date = new Date(year, month, day);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return date < today;
+    }
+
+    // Check if date is selected
+    isSelected(year, month, day) {
+      if (!this.selectedDate) return false;
+      return year === this.selectedDate.getFullYear() && 
+             month === this.selectedDate.getMonth() && 
+             day === this.selectedDate.getDate();
+    }
+
+    // Generate calendar for given month/year
+    generate(year, month) {
+      // Clear previous calendar
+      this.container.innerHTML = '';
       
-      const cellDate = new Date(year, month, day);
+      // Update month/year display
+      this.monthYearDisplay.textContent = `${monthNames[month]} ${year}`;
       
-      // Disable past dates
-      if (cellDate < today.setHours(0, 0, 0, 0)) {
-        dayCell.classList.add('inactive');
+      const firstDay = this.getFirstDayOfMonth(year, month);
+      const daysInMonth = this.getDaysInMonth(year, month);
+      
+      // Add empty cells for days before first day of month
+      for (let i = 0; i < firstDay; i++) {
+        const emptyCell = this.createEmptyCell();
+        this.container.appendChild(emptyCell);
+      }
+      
+      // Add days of the month
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dayCell = this.createDayCell(year, month, day);
+        this.container.appendChild(dayCell);
+      }
+    }
+
+    // Create empty cell for padding
+    createEmptyCell() {
+      const cell = document.createElement('div');
+      cell.className = 'calendar-empty';
+      return cell;
+    }
+
+    // Create day cell
+    createDayCell(year, month, day) {
+      const cell = document.createElement('div');
+      cell.textContent = day;
+      cell.className = 'calendar-day';
+      
+      // Add appropriate classes
+      if (this.isPastDate(year, month, day)) {
+        cell.classList.add('inactive');
+        cell.title = 'Дата недоступна';
       } else {
-        // Check if this is today
-        if (cellDate.toDateString() === new Date().toDateString()) {
-          dayCell.classList.add('today');
+        if (this.isToday(year, month, day)) {
+          cell.classList.add('today');
         }
         
-        // Check if this date is selected
-        if (selectedDate && day === selectedDate.getDate() && month === selectedDate.getMonth() && year === selectedDate.getFullYear()) {
-          dayCell.classList.add('selected');
+        if (this.isSelected(year, month, day)) {
+          cell.classList.add('selected');
         }
         
-        dayCell.addEventListener('click', () => {
-          const previouslySelected = document.querySelector('.days div.selected');
-          if (previouslySelected) {
-            previouslySelected.classList.remove('selected');
-          }
-          
-          dayCell.classList.add('selected');
-          selectedDate = new Date(year, month, day);
-          generateTimeSlots(selectedDate);
+        // Add click handler for active dates
+        cell.addEventListener('click', () => {
+          this.selectDate(year, month, day);
         });
-      }
-      
-      calendarDays.appendChild(dayCell);
-    }
-  }
-
-  async function getBookedSlots(date) {
-    try {
-      const dateString = date.toISOString().split('T')[0];
-      const { data: bookings, error } = await supabase
-        .from('bookings')
-        .select('booking_time')
-        .eq('booking_date', dateString)
-        .neq('status', 'cancelled');
-
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
-
-      return bookings ? bookings.map(booking => booking.booking_time) : [];
-    } catch (error) {
-      console.error('Error fetching booked slots:', error);
-      return [];
-    }
-  }
-
-  async function generateTimeSlots(date) {
-    selectDateMessage.style.display = 'none';
-    slotsContainer.style.display = 'grid';
-    slotsContainer.innerHTML = '<p>Загрузка доступного времени...</p>';
-    
-    const startHour = 10;
-    const endHour = 21;
-    
-    try {
-      // Get booked slots for the selected date
-      const bookedSlots = await getBookedSlots(date);
-      
-      slotsContainer.innerHTML = '';
-      
-      for (let hour = startHour; hour < endHour; hour++) {
-        const timeSlot = document.createElement('div');
-        const timeString = `${hour}:00`;
         
-        // Check if the slot is booked
-        if (bookedSlots.includes(timeString)) {
-          timeSlot.className = 'time-slot unavailable';
-          timeSlot.title = 'Время занято';
-        } else {
-          timeSlot.className = 'time-slot';
-          timeSlot.addEventListener('click', () => {
-            const previouslySelected = document.querySelector('.time-slot.selected');
-            if (previouslySelected) {
-              previouslySelected.classList.remove('selected');
-            }
-            
-            timeSlot.classList.add('selected');
-            selectedTimeSlot = timeString;
-            continueBtn.disabled = false;
-          });
+        cell.style.cursor = 'pointer';
+      }
+      
+      return cell;
+    }
+
+    // Select a date
+    selectDate(year, month, day) {
+      // Remove previous selection
+      const previousSelected = this.container.querySelector('.selected');
+      if (previousSelected) {
+        previousSelected.classList.remove('selected');
+      }
+      
+      // Set new selection
+      this.selectedDate = new Date(year, month, day);
+      
+      // Add selected class to clicked cell
+      const clickedCell = Array.from(this.container.children).find(cell => {
+        return cell.textContent == day && !cell.classList.contains('inactive');
+      });
+      
+      if (clickedCell) {
+        clickedCell.classList.add('selected');
+      }
+      
+      // Trigger callback if set
+      if (this.onDateSelect) {
+        this.onDateSelect(this.selectedDate);
+      }
+    }
+
+    // Navigate to previous month
+    previousMonth() {
+      this.currentDate.setMonth(this.currentDate.getMonth() - 1);
+      this.generate(this.currentDate.getFullYear(), this.currentDate.getMonth());
+    }
+
+    // Navigate to next month
+    nextMonth() {
+      this.currentDate.setMonth(this.currentDate.getMonth() + 1);
+      this.generate(this.currentDate.getFullYear(), this.currentDate.getMonth());
+    }
+
+    // Get selected date
+    getSelectedDate() {
+      return this.selectedDate;
+    }
+
+    // Set date selection callback
+    setOnDateSelect(callback) {
+      this.onDateSelect = callback;
+    }
+  }
+
+  // Time slots class
+  class TimeSlots {
+    constructor(container, slotsContainer, messageContainer) {
+      this.container = container;
+      this.slotsContainer = slotsContainer;
+      this.messageContainer = messageContainer;
+      this.selectedSlot = null;
+      this.onSlotSelect = null;
+      this.bookedSlots = [];
+    }
+
+    // Show loading state
+    showLoading() {
+      this.messageContainer.style.display = 'none';
+      this.slotsContainer.style.display = 'block';
+      this.slotsContainer.innerHTML = '<p>Загрузка доступного времени...</p>';
+    }
+
+    // Show error state
+    showError(message = 'Ошибка загрузки времени. Попробуйте еще раз.') {
+      this.messageContainer.style.display = 'none';
+      this.slotsContainer.style.display = 'block';
+      this.slotsContainer.innerHTML = `<p class="error">${message}</p>`;
+    }
+
+    // Generate time slots for a date
+    async generate(date) {
+      this.showLoading();
+      
+      try {
+        // Get booked slots for the date
+        this.bookedSlots = await this.getBookedSlots(date);
+        
+        // Clear container
+        this.slotsContainer.innerHTML = '';
+        this.slotsContainer.style.display = 'grid';
+        
+        // Generate slots from 10:00 to 21:00
+        const startHour = 10;
+        const endHour = 21;
+        
+        for (let hour = startHour; hour < endHour; hour++) {
+          const timeString = `${hour}:00`;
+          const slot = this.createTimeSlot(timeString);
+          this.slotsContainer.appendChild(slot);
         }
         
-        timeSlot.textContent = timeString;
-        slotsContainer.appendChild(timeSlot);
+      } catch (error) {
+        console.error('Error generating time slots:', error);
+        this.showError();
       }
-    } catch (error) {
-      slotsContainer.innerHTML = '<p class="error">Ошибка загрузки времени. Попробуйте еще раз.</p>';
+    }
+
+    // Create time slot element
+    createTimeSlot(timeString) {
+      const slot = document.createElement('div');
+      slot.className = 'time-slot';
+      slot.textContent = timeString;
+      
+      // Check if slot is booked
+      if (this.bookedSlots.includes(timeString)) {
+        slot.classList.add('unavailable');
+        slot.title = 'Время занято';
+      } else {
+        // Add click handler for available slots
+        slot.addEventListener('click', () => {
+          this.selectSlot(timeString, slot);
+        });
+        
+        slot.style.cursor = 'pointer';
+      }
+      
+      return slot;
+    }
+
+    // Select a time slot
+    selectSlot(timeString, slotElement) {
+      // Remove previous selection
+      const previousSelected = this.slotsContainer.querySelector('.selected');
+      if (previousSelected) {
+        previousSelected.classList.remove('selected');
+      }
+      
+      // Set new selection
+      slotElement.classList.add('selected');
+      this.selectedSlot = timeString;
+      
+      // Trigger callback if set
+      if (this.onSlotSelect) {
+        this.onSlotSelect(timeString);
+      }
+    }
+
+    // Get booked slots for a date
+    async getBookedSlots(date) {
+      try {
+        const dateString = date.toISOString().split('T')[0];
+        const { data: bookings, error } = await supabase
+          .from('bookings')
+          .select('booking_time')
+          .eq('booking_date', dateString)
+          .neq('status', 'cancelled');
+
+        if (error) {
+          console.error('Supabase error:', error);
+          throw error;
+        }
+
+        return bookings ? bookings.map(booking => booking.booking_time) : [];
+      } catch (error) {
+        console.error('Error fetching booked slots:', error);
+        return [];
+      }
+    }
+
+    // Get selected slot
+    getSelectedSlot() {
+      return this.selectedSlot;
+    }
+
+    // Set slot selection callback
+    setOnSlotSelect(callback) {
+      this.onSlotSelect = callback;
+    }
+
+    // Hide time slots
+    hide() {
+      this.messageContainer.style.display = 'block';
+      this.slotsContainer.style.display = 'none';
+      this.selectedSlot = null;
     }
   }
 
+  // Form validation class
+  class FormValidator {
+    constructor(form) {
+      this.form = form;
+      this.errors = {};
+    }
+
+    // Validate required fields
+    validateRequired(fieldName, value, message) {
+      if (!value || value.trim() === '') {
+        this.errors[fieldName] = message;
+        return false;
+      }
+      delete this.errors[fieldName];
+      return true;
+    }
+
+    // Validate phone number
+    validatePhone(phone) {
+      const phoneRegex = /^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$/;
+      if (!phoneRegex.test(phone)) {
+        this.errors.phone = 'Неверный формат телефона';
+        return false;
+      }
+      delete this.errors.phone;
+      return true;
+    }
+
+    // Validate form
+    validate(formData) {
+      this.errors = {};
+      
+      // Validate required fields
+      this.validateRequired('name', formData.get('name'), 'Введите ваше имя');
+      this.validateRequired('phone', formData.get('phone'), 'Введите номер телефона');
+      this.validateRequired('description', formData.get('description'), 'Опишите желаемую татуировку');
+      
+      // Validate phone format
+      if (formData.get('phone')) {
+        this.validatePhone(formData.get('phone'));
+      }
+      
+      // Validate contact method specific fields
+      const contactMethod = formData.get('contact-method');
+      if (contactMethod === 'telegram') {
+        this.validateRequired('telegram', formData.get('telegram'), 'Введите ваш Телеграм');
+      } else if (contactMethod === 'vk') {
+        this.validateRequired('vk', formData.get('vk'), 'Введите ваш ВКонтакте');
+      }
+      
+      // Check agreement
+      if (!formData.get('agree')) {
+        this.errors.agree = 'Необходимо согласие на обработку данных';
+      }
+      
+      return Object.keys(this.errors).length === 0;
+    }
+
+    // Show errors
+    showErrors() {
+      // Remove previous error messages
+      this.form.querySelectorAll('.error-message').forEach(el => el.remove());
+      
+      // Add new error messages
+      Object.keys(this.errors).forEach(fieldName => {
+        const field = this.form.querySelector(`[name="${fieldName}"]`);
+        if (field) {
+          const errorDiv = document.createElement('div');
+          errorDiv.className = 'error-message';
+          errorDiv.style.color = '#f44336';
+          errorDiv.style.fontSize = '0.875rem';
+          errorDiv.style.marginTop = '0.25rem';
+          errorDiv.textContent = this.errors[fieldName];
+          
+          field.parentNode.appendChild(errorDiv);
+        }
+      });
+    }
+  }
+
+  // Phone formatter utility
+  class PhoneFormatter {
+    static format(input) {
+      let value = input.value.replace(/\D/g, '');
+      
+      // Remove leading 7 or 8 if present
+      if (value.startsWith('7') || value.startsWith('8')) {
+        value = value.substring(1);
+      }
+      
+      // Format the number
+      if (value.length > 0) {
+        let formattedValue = '+7';
+        if (value.length > 0) {
+          formattedValue += ' (' + value.substring(0, 3);
+        }
+        if (value.length >= 4) {
+          formattedValue += ') ' + value.substring(3, 6);
+        }
+        if (value.length >= 7) {
+          formattedValue += '-' + value.substring(6, 8);
+        }
+        if (value.length >= 9) {
+          formattedValue += '-' + value.substring(8, 10);
+        }
+        
+        input.value = formattedValue;
+      }
+    }
+  }
+
+  // Initialize calendar
+  const calendar = new Calendar(calendarDays, currentMonthYear);
+  const timeSlotManager = new TimeSlots(timeSlots, slotsContainer, selectDateMessage);
+  const formValidator = new FormValidator(contactForm);
+
+  // Set up calendar callbacks
+  calendar.setOnDateSelect((date) => {
+    selectedDate = date;
+    timeSlotManager.generate(date);
+  });
+
+  // Set up time slots callbacks
+  timeSlotManager.setOnSlotSelect((timeString) => {
+    selectedTimeSlot = timeString;
+    continueBtn.disabled = false;
+  });
+
+  // Calendar navigation
   prevMonthBtn.addEventListener('click', () => {
-    currentDate.setMonth(currentDate.getMonth() - 1);
-    generateCalendar(currentDate.getFullYear(), currentDate.getMonth());
+    calendar.previousMonth();
   });
 
   nextMonthBtn.addEventListener('click', () => {
-    currentDate.setMonth(currentDate.getMonth() + 1);
-    generateCalendar(currentDate.getFullYear(), currentDate.getMonth());
+    calendar.nextMonth();
   });
 
+  // Step navigation
   continueBtn.addEventListener('click', () => {
     bookingStep1.classList.remove('active');
     bookingStep2.classList.add('active');
@@ -179,6 +474,37 @@ document.addEventListener('DOMContentLoaded', function() {
     bookingStep1.classList.add('active');
   });
 
+  // Contact method change handlers
+  contactMethodRadios.forEach(radio => {
+    radio.addEventListener('change', () => {
+      const method = radio.value;
+      
+      // Hide all additional fields first
+      telegramField.style.display = 'none';
+      vkField.style.display = 'none';
+      
+      // Reset required attributes
+      document.getElementById('telegram').required = false;
+      document.getElementById('vk').required = false;
+      
+      // Show relevant field and set required
+      if (method === 'telegram') {
+        telegramField.style.display = 'block';
+        document.getElementById('telegram').required = true;
+      } else if (method === 'vk') {
+        vkField.style.display = 'block';
+        document.getElementById('vk').required = true;
+      }
+    });
+  });
+
+  // Phone number formatting
+  const phoneInput = document.getElementById('phone');
+  phoneInput.addEventListener('input', function(e) {
+    PhoneFormatter.format(e.target);
+  });
+
+  // Form submission
   contactForm.addEventListener('submit', async function(e) {
     e.preventDefault();
     
@@ -189,6 +515,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     try {
       const formData = new FormData(contactForm);
+      
+      // Validate form
+      if (!formValidator.validate(formData)) {
+        formValidator.showErrors();
+        return;
+      }
       
       // Get contact details based on selected method
       let contactDetails = '';
@@ -231,7 +563,7 @@ document.addEventListener('DOMContentLoaded', function() {
         alert('Извините, это время уже занято. Пожалуйста, выберите другое время.');
         bookingStep2.classList.remove('active');
         bookingStep1.classList.add('active');
-        generateTimeSlots(selectedDate);
+        timeSlotManager.generate(selectedDate);
         return;
       }
 
@@ -261,60 +593,6 @@ document.addEventListener('DOMContentLoaded', function() {
     } finally {
       submitButton.textContent = originalText;
       submitButton.disabled = false;
-    }
-  });
-
-  // Contact method change handlers
-  contactMethodRadios.forEach(radio => {
-    radio.addEventListener('change', () => {
-      const method = radio.value;
-      
-      // Hide all additional fields first
-      telegramField.style.display = 'none';
-      vkField.style.display = 'none';
-      
-      // Reset required attributes
-      document.getElementById('telegram').required = false;
-      document.getElementById('vk').required = false;
-      
-      // Show relevant field and set required
-      if (method === 'telegram') {
-        telegramField.style.display = 'block';
-        document.getElementById('telegram').required = true;
-      } else if (method === 'vk') {
-        vkField.style.display = 'block';
-        document.getElementById('vk').required = true;
-      }
-    });
-  });
-
-  // Phone number formatting
-  const phoneInput = document.getElementById('phone');
-  phoneInput.addEventListener('input', function(e) {
-    let value = e.target.value.replace(/\D/g, '');
-    
-    // Remove leading 7 or 8 if present
-    if (value.startsWith('7') || value.startsWith('8')) {
-      value = value.substring(1);
-    }
-    
-    // Format the number
-    if (value.length > 0) {
-      let formattedValue = '+7';
-      if (value.length > 0) {
-        formattedValue += ' (' + value.substring(0, 3);
-      }
-      if (value.length >= 4) {
-        formattedValue += ') ' + value.substring(3, 6);
-      }
-      if (value.length >= 7) {
-        formattedValue += '-' + value.substring(6, 8);
-      }
-      if (value.length >= 9) {
-        formattedValue += '-' + value.substring(8, 10);
-      }
-      
-      e.target.value = formattedValue;
     }
   });
 
@@ -350,7 +628,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Initialize the booking system
   function init() {
-    generateCalendar(currentDate.getFullYear(), currentDate.getMonth());
+    calendar.generate(calendar.currentDate.getFullYear(), calendar.currentDate.getMonth());
     loadArtists();
   }
 
