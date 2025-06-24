@@ -1,8 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
-  // Artists data - In a real application, this would come from a server
-  const artists = [
-    {
-      id: 1,
+  // Artists data
+  const artistsData = {
+    1: {
       name: 'Алексей Морозов',
       specialty: 'Реализм, Блэкворк',
       bio: 'Более 10 лет опыта в татуировке. Специализируюсь на реалистичных портретах и детализированных блэкворк работах. Каждую татуировку рассматриваю как уникальное произведение искусства, адаптированное под индивидуальность клиента. Постоянно совершенствую технику и слежу за новыми тенденциями в мире тату.',
@@ -19,8 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
         'content/buddy.jpg',
       ]
     },
-    {
-      id: 2,
+    2: {
       name: 'Марина Соколова',
       specialty: 'Графика, Неотрадишнл',
       bio: 'Художник с образованием в области графического дизайна. В татуировке уже 7 лет, за это время разработала свой уникальный стиль на стыке графики и неотрадишнл. Люблю экспериментировать с формами и композициями, создавая динамичные и выразительные работы. Всегда открыта для творческих идей и коллабораций с клиентами.',
@@ -37,13 +35,12 @@ document.addEventListener('DOMContentLoaded', function() {
         'content/flower.jpg'
       ]
     },
-    {
-      id: 3,
+    3: {
       name: 'Илья Громов',
       specialty: 'Традишнл, Орнаменты',
       bio: 'Мастер традиционных стилей татуировки с 8-летним опытом. Особенно увлекаюсь японской и американской традиционной татуировкой, изучал историю и культурный контекст этих направлений. Каждая моя работа — это не только изображение, но и история, рассказанная через символы и традиционные элементы. Придаю большое значение чистым линиям и насыщенным цветам.',
       styles: ['Традишнл', 'Японский стиль', 'Олд скул', 'Орнаменты'],
-      avatar: 'ilya.jpg',
+      avatar: 'content/ilya.jpg',
       socials: {
         vk: 'https://vk.com',
         telegram: 'https://t.me/username'
@@ -54,57 +51,17 @@ document.addEventListener('DOMContentLoaded', function() {
         'content/fenix.jpg'
       ]
     }
-  ];
+  };
 
-  const artistsContainer = document.getElementById('artists-container');
+  const artistCards = document.querySelectorAll('.artist-card');
   const artistModal = document.getElementById('artist-modal');
   const closeModal = document.querySelector('.close-modal');
 
-  // Generate artist cards
-  function renderArtists() {
-    artistsContainer.innerHTML = '';
-
-    artists.forEach(artist => {
-      const artistCard = document.createElement('div');
-      artistCard.className = 'artist-card';
-      artistCard.setAttribute('data-id', artist.id);
-      
-      // Get sample works (first 4)
-      const sampleWorks = artist.portfolio.slice(0, 4);
-      
-      artistCard.innerHTML = `
-        <div class="artist-header">
-          <div class="artist-avatar-container">
-            <img src="${artist.avatar}" alt="${artist.name}">
-          </div>
-          <h3 class="artist-name">${artist.name}</h3>
-          <p class="artist-specialty">${artist.specialty}</p>
-          <div class="artist-tags">
-            ${artist.styles.slice(0, 3).map(style => `<span class="artist-tag">${style}</span>`).join('')}
-          </div>
-        </div>
-        <div class="artist-sample">
-          ${sampleWorks.map(work => `
-            <div class="sample-work">
-              <img src="${work}" alt="Пример работы">
-            </div>
-          `).join('')}
-        </div>
-        <div class="artist-footer">
-          <a href="#" class="view-profile-btn">Профиль мастера</a>
-        </div>
-      `;
-      
-      artistCard.addEventListener('click', () => {
-        openArtistModal(artist);
-      });
-      
-      artistsContainer.appendChild(artistCard);
-    });
-  }
-
   // Open artist modal with details
-  function openArtistModal(artist) {
+  function openArtistModal(artistId) {
+    const artist = artistsData[artistId];
+    if (!artist) return;
+
     const modalArtistAvatar = document.getElementById('modal-artist-avatar');
     const modalArtistName = document.getElementById('modal-artist-name');
     const modalArtistSpecialty = document.getElementById('modal-artist-specialty');
@@ -150,7 +107,15 @@ document.addEventListener('DOMContentLoaded', function() {
     document.body.style.overflow = '';
   }
 
-  // Add event listeners
+  // Add event listeners to artist cards
+  artistCards.forEach(card => {
+    card.addEventListener('click', () => {
+      const artistId = card.getAttribute('data-id');
+      openArtistModal(artistId);
+    });
+  });
+
+  // Add event listeners for modal
   if (closeModal) {
     closeModal.addEventListener('click', closeModalHandler);
   }
@@ -164,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && artistModal.classList.contains('active')) {
+    if (e.key === 'Escape' && artistModal && artistModal.classList.contains('active')) {
       closeModalHandler();
     }
   });
@@ -174,19 +139,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const artistId = urlParams.get('id');
     
-    if (artistId) {
-      const artist = artists.find(a => a.id === parseInt(artistId));
-      if (artist) {
-        setTimeout(() => {
-          openArtistModal(artist);
-        }, 500);
-      }
+    if (artistId && artistsData[artistId]) {
+      setTimeout(() => {
+        openArtistModal(artistId);
+      }, 500);
     }
   }
 
-  // Initialize artists
-  renderArtists();
-  
   // Check URL for artist ID
   checkForArtistInURL();
 });
